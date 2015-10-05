@@ -3,7 +3,7 @@ package com.example.hyperion;
 /**
  * To-Write
  * 
- * @author 		-
+ * @author 		Ola Andersson
  * @version		-
  * @since		-
  */
