@@ -1,6 +1,6 @@
 package com.example.hyperion;
 
-import com.example.hyprion.R;
+import com.example.hyperion.R;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -16,6 +16,9 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Playfield Fragment, initializes GUI for Playfield; Left- Right, Fire Button.
  * 
@@ -27,6 +30,9 @@ import android.widget.Button;
 public class Playfield extends Fragment
 {
 	private Bus bus = new Bus ();
+
+	private final List<LightingBolt> lightingBolts = new ArrayList<>();
+
 	private Background background;
 	
 	private static final int BUTTON_LEFT = R.id.button_left;
@@ -44,7 +50,7 @@ public class Playfield extends Fragment
 	}
 	
 	@Override
-	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+	public View onCreateView (LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
 
 		DisplayMetrics metrics = new DisplayMetrics();
 		this.getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
@@ -75,7 +81,7 @@ public class Playfield extends Fragment
 		buttonFire.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				fire();
+				fire(container);
 			}
 		});
 
@@ -91,29 +97,42 @@ public class Playfield extends Fragment
 	public Bus getBus() {
 		return bus;
 	}
-	
+
 	/**
 	 * Action Listener for Fire Button. Tries to fire lightning bolts, if the power is enough for the bus.
 	 */
-	private void fire () {
+	private void fire (ViewGroup v) {
 		if (bus.getPowerComponent().firePower()) {
-			// fire lightning
+			LightingBolt lb = new LightingBolt(bus.getLane());
+			lightingBolts.add(lb);
+			v.addView(lb.getView(getActivity()));
 		}
 	}
-	
+
+	public synchronized void updateLightingBolts(){
+		for(LightingBolt lb: lightingBolts){
+			if(lb.bottom < 200){
+				lb.gone(lb.getView(getActivity()));
+			}
+			else { lb.update(); }
+		}
+	}
+
+
 	/**
 	 * Action Listener for Left Button. Tries to move left, if there is a lane there.
 	 */
 	private void left () {
-		// move left
+		bus.moveLeft();
 	}
-	
+
 	/**
 	 * Action Listener for Right Button. Tries to move right, if there is a lane there.
 	 */
 	private void right () {
-		// move right
+		bus.moveRight();
 	}
+}
 
 	/**
 	 * Background graphics for the game.
@@ -206,7 +225,7 @@ public class Playfield extends Fragment
                 offset = (width - newBmapWidth) / 2;
 
 				b = Bitmap.createScaledBitmap(backgroundImage.getBitmap(), newBmapWidth, newBmapHeight, false);
-			}
+            }
 
 			@Override
 			public void onDraw(Canvas canvas) {
@@ -215,7 +234,6 @@ public class Playfield extends Fragment
 				canvas.drawBitmap(b, offset, yPos, null);
 			}
 		}
-	}
     /**
      * Public getter for background.
      *
